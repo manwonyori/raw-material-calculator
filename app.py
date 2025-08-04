@@ -3,10 +3,9 @@ import pandas as pd
 from datetime import datetime
 import io
 import json
-from whitenoise import WhiteNoise
+import os
 
 app = Flask(__name__)
-app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 class RawMaterialCalculator:
     def __init__(self):
@@ -70,6 +69,10 @@ class RawMaterialCalculator:
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'healthy'}), 200
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
