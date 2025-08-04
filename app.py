@@ -3,8 +3,10 @@ import pandas as pd
 from datetime import datetime
 import io
 import json
+from whitenoise import WhiteNoise
 
 app = Flask(__name__)
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 class RawMaterialCalculator:
     def __init__(self):
