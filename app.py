@@ -1,9 +1,15 @@
 from flask import Flask, render_template, request, jsonify, send_file
-import pandas as pd
 from datetime import datetime
 import io
 import json
 import os
+
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+    print("Warning: pandas not available")
 
 app = Flask(__name__)
 
@@ -83,6 +89,9 @@ def calculate():
 
 @app.route('/download_excel', methods=['POST'])
 def download_excel():
+    if not PANDAS_AVAILABLE:
+        return jsonify({'error': 'Excel download not available'}), 503
+        
     data = request.json
     calculator = RawMaterialCalculator()
     result = calculator.calculate_cost(data)
