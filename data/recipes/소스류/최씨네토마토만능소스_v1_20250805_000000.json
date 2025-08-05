@@ -1,0 +1,74 @@
+{
+  "recipe_name": "최씨네토마토만능소스",
+  "brand": "만원요리",
+  "category": "소스류",
+  "version": 1,
+  "created_date": "2025-08-05T00:00:00",
+  "filename": "최씨네토마토만능소스_v1_20250805_000000.json",
+  "total_weight": 244,
+  "loss_rate": 0.22,
+  "materials": [
+    {
+      "name": "농축토마토",
+      "percentage": 53.18,
+      "price_per_kg": 3654
+    },
+    {
+      "name": "간양파",
+      "percentage": 18.41,
+      "price_per_kg": 1500
+    },
+    {
+      "name": "베이컨류",
+      "percentage": 8.18,
+      "price_per_kg": 9950
+    },
+    {
+      "name": "다진마늘",
+      "percentage": 0.82,
+      "price_per_kg": 2000
+    },
+    {
+      "name": "식용유",
+      "percentage": 1.23,
+      "price_per_kg": 2500
+    },
+    {
+      "name": "다진돼지고기",
+      "percentage": 10.23,
+      "price_per_kg": 5500
+    },
+    {
+      "name": "설탕",
+      "percentage": 2.29,
+      "price_per_kg": 1653
+    },
+    {
+      "name": "다진소고기",
+      "percentage": 1.02,
+      "price_per_kg": 10000
+    },
+    {
+      "name": "오레가노럽드",
+      "percentage": 0.21,
+      "price_per_kg": 15000
+    },
+    {
+      "name": "바질럽드",
+      "percentage": 0.15,
+      "price_per_kg": 9000
+    },
+    {
+      "name": "치킨스톡분말",
+      "percentage": 0.18,
+      "price_per_kg": 6029
+    },
+    {
+      "name": "원계수잎분말",
+      "percentage": 0.01,
+      "price_per_kg": 16500
+    }
+  ],
+  "cost_per_100g": 493,
+  "total_material_cost": 938794
+}

@@ -4,8 +4,10 @@ import json
 import csv
 import io
 import os
+from data_manager import GitHubDataManager
 
 app = Flask(__name__)
+data_manager = GitHubDataManager()
 
 class RawMaterialCalculator:
     def __init__(self):
@@ -80,6 +82,73 @@ def calculate():
     calculator = RawMaterialCalculator()
     result = calculator.calculate_cost(data)
     return jsonify(result)
+
+@app.route('/save_recipe', methods=['POST'])
+def save_recipe():
+    """레시피 저장"""
+    try:
+        data = request.json
+        calculator = RawMaterialCalculator()
+        result = calculator.calculate_cost(data)
+        
+        # 레시피 데이터 준비
+        recipe_data = {
+            'recipe_name': data.get('recipe_name', ''),
+            'brand': data.get('brand', ''),
+            'category': data.get('category', '기타'),
+            'total_weight': data.get('total_weight', 244),
+            'loss_rate': data.get('loss_rate', 0.22),
+            'materials': data.get('materials', []),
+            'cost_per_100g': result.get('cost_per_100g'),
+            'total_material_cost': result.get('total_material_cost'),
+            'calculation_result': result
+        }
+        
+        # 저장
+        filepath = data_manager.save_recipe(recipe_data)
+        
+        # 원가 이력도 저장
+        data_manager.save_cost_history(
+            recipe_data['recipe_name'], 
+            recipe_data['category'], 
+            result
+        )
+        
+        return jsonify({
+            'success': True, 
+            'message': '레시피가 저장되었습니다',
+            'filepath': filepath
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/load_recipes')
+def load_recipes():
+    """모든 레시피 목록 조회"""
+    try:
+        recipes = data_manager.get_all_recipes()
+        return jsonify({'success': True, 'recipes': recipes})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/load_recipe/<category>/<filename>')
+def load_recipe(category, filename):
+    """특정 레시피 불러오기"""
+    try:
+        recipe = data_manager.load_recipe(filename, category)
+        return jsonify({'success': True, 'recipe': recipe})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/cost_trend/<category>/<recipe_name>')
+def cost_trend(category, recipe_name):
+    """원가 변동 추이 조회"""
+    try:
+        trends = data_manager.get_cost_trend(recipe_name, category)
+        return jsonify({'success': True, 'trends': trends})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/download_excel', methods=['POST'])
 def download_csv():
