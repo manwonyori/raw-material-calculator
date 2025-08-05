@@ -152,35 +152,58 @@ def cost_trend(category, recipe_name):
 
 @app.route('/download_excel', methods=['POST'])
 def download_csv():
-    """CSV 파일로 다운로드 (Excel 대체)"""
+    """CSV 파일로 다운로드 (Excel에서 열기 최적화)"""
     data = request.json
     calculator = RawMaterialCalculator()
     result = calculator.calculate_cost(data)
     
-    # CSV 생성
+    # CSV 생성 (UTF-8 BOM 추가로 Excel 한글 지원)
     output = io.StringIO()
     
-    # 요약 정보
-    output.write("원재료 계산 결과\n")
+    # BOM 추가 (Excel에서 한글이 깨지지 않도록)
+    output.write('\ufeff')
+    
+    # === 요약 정보 ===
+    output.write("=== 원재료 계산 결과 요약 ===\n")
     output.write(f"레시피명,{result['recipe_name']}\n")
+    output.write(f"브랜드,{data.get('brand', '없음')}\n")
+    output.write(f"카테고리,{data.get('category', '기타')}\n")
     output.write(f"총 투입량(kg),{result['total_input_kg']}\n")
-    output.write(f"로스율(%),{result['loss_rate']}\n")
+    output.write(f"로스율(%),{result['loss_rate']}\n") 
     output.write(f"실제 생산량(kg),{result['actual_production_kg']}\n")
-    output.write(f"총 재료비,{result['total_material_cost']}\n")
-    output.write(f"100g당 원가,{result['cost_per_100g']}\n")
+    output.write(f"총 재료비(원),\"{result['total_material_cost']:,}\"\n")
+    output.write(f"g당 원가(원),{result['cost_per_g']}\n")
+    output.write(f"100g당 원가(원),{result['cost_per_100g']}\n")
     output.write(f"계산일시,{result['calculation_date']}\n")
     output.write("\n")
     
-    # 재료 상세
-    output.write("재료명,비율(%),사용량(kg),kg당 단가,재료비\n")
+    # === 재료별 상세 ===
+    output.write("=== 재료별 상세 내역 ===\n")
+    output.write("재료명,비율(%),사용량(kg),사용량(g),kg당 단가(원),g당 단가(원),재료비(원)\n")
     for material in result['materials_detail']:
-        output.write(f"{material['name']},{material['percentage']},{material['usage_kg']},{material['price_per_kg']},{material['cost']}\n")
+        output.write(f"{material['name']},{material['percentage']},{material['usage_kg']},{material['usage_g']},\"{material['price_per_kg']:,}\",{material['price_per_g']},\"{material['cost']:,}\"\n")
     output.write("\n")
     
-    # 팩 단위 원가
-    output.write("팩 규격,원가\n")
+    # === 팩 단위별 원가 ===
+    output.write("=== 팩 단위별 원가 ===\n")
+    output.write("팩 규격,재료 원가(원),원가율 30% 기준 판매가(원)\n")
     for size, cost in result['pack_costs'].items():
-        output.write(f"{size},{cost}\n")
+        selling_price = round(cost / 0.3)
+        output.write(f"{size},\"{cost:,}\",\"{selling_price:,}\"\n")
+    output.write("\n")
+    
+    # === 원가 분석 ===
+    output.write("=== 원가 분석 ===\n")
+    total_percentage = sum(material['percentage'] for material in result['materials_detail'])
+    output.write(f"총 재료 비율 합계(%),{total_percentage}\n")
+    
+    # 주요 재료 TOP 5
+    top_materials = sorted(result['materials_detail'], key=lambda x: x['cost'], reverse=True)[:5]
+    output.write("주요 재료 TOP 5 (비용 기준)\n")
+    output.write("순위,재료명,재료비(원),비중(%)\n")
+    for i, material in enumerate(top_materials, 1):
+        weight_percent = (material['cost'] / result['total_material_cost']) * 100
+        output.write(f"{i},{material['name']},\"{material['cost']:,}\",{weight_percent:.1f}%\n")
     
     # CSV 응답
     output.seek(0)
